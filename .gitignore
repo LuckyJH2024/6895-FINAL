@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.pyd
+*.pyo
+*.log
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+*.ipynb~
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Output / temporary data
+output/
+*.csv
+*.tsv
+*.json
+*.xlsx
+*.npy
+*.pkl
+
+# Secrets / configs
+.env
+*.token
+*.key
+*.pem
+
+# Test results / coverage
+htmlcov/
+.tox/
+.coverage
+coverage.xml
+*.cover
+*.py,cover
+.cache/
+pytest_cache/
+
+# System files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Logs
+*.log
+*.tmp
+*.bak
+
+# My custom folders
+sagaLLM-repo.iml
+.idea/
