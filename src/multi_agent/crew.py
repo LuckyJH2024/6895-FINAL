@@ -4,6 +4,15 @@ from colorama import Fore
 from graphviz import Digraph  # type: ignore
 import sys
 import os
+import io
+
+# Store original stdout and stderr to prevent them from being garbage collected
+original_stdout = sys.stdout
+original_stderr = sys.stderr
+
+# Set stdout and stderr encoding to UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Get the project root by going up one level from 'applications'
 project_root = os.path.abspath(os.path.join(os.getcwd(), '..'))
@@ -20,8 +29,8 @@ for path in sys.path:
 
 # Try importing Saga again
 try:
-    from utils.logging import custom_print
-    print("✅ utils.logging imported successfully!")
+    from src.utils.logging import custom_print
+    print("✅ src.utils.logging imported successfully!")
 except ModuleNotFoundError as e:
     print("❌ Import failed:", e)
 

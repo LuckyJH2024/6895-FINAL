@@ -7,6 +7,15 @@ from openai import OpenAI
 
 import sys
 import os
+import io
+
+# Store original stdout and stderr to prevent them from being garbage collected
+original_stdout = sys.stdout
+original_stderr = sys.stderr
+
+# Set stdout and stderr encoding to UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Get the project root by going up one level from 'applications'
 project_root = os.path.abspath(os.path.join(os.getcwd(), '..'))
@@ -23,17 +32,17 @@ for path in sys.path:
 
 # Try importing Saga again
 try:
-    from tool_agent.tool import Tool
-    from tool_agent.tool import validate_arguments
-    from utils.completions import build_prompt_structure
-    from utils.completions import ChatHistory
-    from utils.completions import completions_create
-    from utils.completions import update_chat_history
-    from utils.extraction import extract_tag_content
+    from src.tool_agent.tool import Tool
+    from src.tool_agent.tool import validate_arguments
+    from src.utils.completions import build_prompt_structure
+    from src.utils.completions import ChatHistory
+    from src.utils.completions import completions_create
+    from src.utils.completions import update_chat_history
+    from src.utils.extraction import extract_tag_content
 
-    print("✅ tool_agent.tool imported successfully!")
-    print("✅ utils.completions imported successfully!")
-    print("✅ utils.extraction imported successfully!")
+    print("✅ src.tool_agent.tool imported successfully!")
+    print("✅ src.utils.completions imported successfully!")
+    print("✅ src.utils.extraction imported successfully!")
 except ModuleNotFoundError as e:
     print("❌ Import failed:", e)
 

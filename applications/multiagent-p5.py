@@ -1,27 +1,34 @@
 import sys
 import os
+import io
 from dotenv import load_dotenv
 load_dotenv()
 
-# Setup project root and src path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# Get the project root by going up one level from 'applications'
+project_root = os.path.abspath(os.path.join(os.getcwd(), '..'))
+print(f"📂 Project Root: {project_root}")
+
+# Append 'src' directory to sys.path
 src_path = os.path.join(project_root, 'src')
 sys.path.append(src_path)
 
+# Set stdout and stderr encoding before importing other modules
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 # Print sys.path to verify
-print("\U0001F50D Updated sys.path:")
+print("🔍 Updated sys.path:")
 for path in sys.path:
     print(path)
 
-# Try importing core modules
+# Try importing Saga again
 try:
-    from multi_agent.saga import Saga
-    from multi_agent.agent import Agent
+    from src.multi_agent.saga import Saga
+    from src.multi_agent.agent import Agent
     print("✅ Saga imported successfully!")
     print("✅ Agent imported successfully!")
 except ModuleNotFoundError as e:
     print("❌ Import failed:", e)
-
 # Initialize Saga
 saga = Saga()
 
@@ -76,8 +83,8 @@ CV_Agent = Agent(
   <time>
     - Travel times:
       - Home to BOS Airport: 60 min
-      - BOS to Grandma’s: 60 min
-      - Home to Grandma’s: 30 min
+      - BOS to Grandma's: 60 min
+      - Home to Grandma's: 30 min
     - James must rent car after landing
     - Emily requires airport pickup
   </time>

@@ -1,12 +1,21 @@
 from collections import deque
 from colorama import Fore
 from graphviz import Digraph  # type: ignore
-from utils.validation import detect_conflict_across_agents
-from utils.logging import custom_print
+from src.utils.validation import detect_conflict_across_agents
+from src.utils.logging import custom_print
 # from src.utils.logging import custom_print
 
 import sys
 import os
+import io
+
+# Store original stdout and stderr to prevent them from being garbage collected
+original_stdout = sys.stdout
+original_stderr = sys.stderr
+
+# 设置标准输出编码为UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Get the project root by going up one level from 'applications'
 project_root = os.path.abspath(os.path.join(os.getcwd(), '..'))
@@ -23,7 +32,7 @@ for path in sys.path:
 
 # Try importing Saga again
 try:
-    from utils.logging import custom_print
+    from src.utils.logging import custom_print
     print("✅ Utils imported successfully!")
 except ModuleNotFoundError as e:
     print("❌ Import failed:", e)
@@ -67,7 +76,11 @@ class Saga:
                 ])
 
                 # Run agent, catch risk prediction if returned in tuple
-                result = agent.run()
+                try:
+                    result = agent.run()
+                except Exception as e:
+                    print(Fore.RED + f"❌ ERROR in {agent.name}: {str(e)}")
+                    raise e
 
                 # ✅ 处理可能返回风险结构（要求 agent.run() 返回 dict 或 tuple）
                 if isinstance(result, dict) and "risk" in result:

@@ -1,9 +1,19 @@
 from textwrap import dedent
-from utils.failure_predictor import FailurePredictor
-from utils.validation import validate_response_format
-from multi_agent.crew import Crew
-from planning_agent.react_agent import ReactAgent
-from tool_agent.tool import Tool
+from src.utils.failure_predictor import FailurePredictor
+from src.utils.validation import validate_response_format
+from src.multi_agent.crew import Crew
+from src.planning_agent.react_agent import ReactAgent
+from src.tool_agent.tool import Tool
+import sys
+import io
+
+# Store original stdout and stderr to prevent them from being garbage collected
+original_stdout = sys.stdout
+original_stderr = sys.stderr
+
+# 设置标准输出和错误流编码为UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 class Agent:
     def __init__(
@@ -93,37 +103,43 @@ class Agent:
         print(f"🔄 Rolling back {self.name}'s operation...")
 
     def run(self):
-        msg = self.create_prompt()
+        try:
+            msg = self.create_prompt()
 
-        max_attempts = 3
-        attempt = 0
+            max_attempts = 3
+            attempt = 0
 
-        while attempt < max_attempts:
-            prediction = self.predictor.predict(agent_name=self.name, prompt=msg)
-            risk_level = prediction.get("risk", "").lower()
-            reason = prediction.get("reason", "")
+            while attempt < max_attempts:
+                prediction = self.predictor.predict(agent_name=self.name, prompt=msg)
+                risk_level = prediction.get("risk", "").lower()
+                reason = prediction.get("reason", "")
 
-            if risk_level != "high":
-                break
+                if risk_level != "high":
+                    break
 
-            print(f"⚠️ Attempt {attempt+1}: Predicted failure risk for {self.name} is HIGH. Reason: {reason}")
-            attempt += 1
+                print(f"⚠️ Attempt {attempt+1}: Predicted failure risk for {self.name} is HIGH. Reason: {reason}")
+                attempt += 1
 
-        if risk_level == "high":
-            print(f"❌ All attempts resulted in high risk for {self.name}. Skipping execution.")
-            self.rollback()
-            self.output = f"<response>Skipped due to high predicted failure risk. Reason: {reason}</response>"
-            return self.output
+            if risk_level == "high":
+                print(f"❌ All attempts resulted in high risk for {self.name}. Skipping execution.")
+                self.rollback()
+                self.output = f"<response>Skipped due to high predicted failure risk. Reason: {reason}</response>"
+                return self.output
 
-        output = self.react_agent.run(user_msg=msg)
+            output = self.react_agent.run(user_msg=msg)
 
-        if not validate_response_format(output):
-            print(f"❌ Validation failed for agent {self.name}: Missing required structure.")
-            raise ValueError(f"Agent {self.name} output format invalid.")
+            if not validate_response_format(output):
+                print(f"❌ Validation failed for agent {self.name}: Missing required structure.")
+                raise ValueError(f"Agent {self.name} output format invalid.")
 
-        self.output = output  # 存储自己的输出到output属性
+            self.output = output  # 存储自己的输出到output属性
 
-        for dependent in self.dependents:
-            dependent.receive_context(self.output)
+            for dependent in self.dependents:
+                dependent.receive_context(self.output)
 
-        return output
+            return output
+        except Exception as e:
+            # 确保错误消息使用UTF-8编码
+            error_msg = f"Error in agent {self.name}: {str(e)}"
+            print(error_msg)
+            raise

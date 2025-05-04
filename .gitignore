@@ -23,7 +23,7 @@ build/
 env/
 venv/
 ENV/
-
+myenv/
 # Output / temporary data
 output/
 *.csv
