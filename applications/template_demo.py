@@ -131,7 +131,7 @@ def main():
     if st.session_state.template is None:
         print("页面初始化 - 未加载预设模板")
     
-    st.title("🧠 SagaLLM Multi-Agent Template Generator")
+    st.title("🧠 SagaLLM Multi-Agent")
     st.write("Enter your scenario, and the AI will create and execute a multi-agent system to solve it")
     
     # 在侧边栏显示模板状态
@@ -227,7 +227,7 @@ def main():
             with st.spinner("Analyzing scenario and generating agent template..."):
                 # 实际上总是使用预设模板
                 import time
-                time.sleep(1.5)  # 模拟处理时间
+                time.sleep(15)  # 模拟处理时间
                 update_template()
                 
             st.success("✅ Agent template generated successfully! You can now click 'Execute Agent Template' to run it")
@@ -345,8 +345,17 @@ def main():
 Based on the following multi-agent system execution results, provide a comprehensive wedding logistics plan with a detailed timeline. Focus on creating a precise schedule of all events and transportations.
 
 Create a timeline in this format:
-1. **<time> - <activity>**  
-   People: <people>
+## Wedding Day Schedule
+
+| Time              | Activity                                              | People Involved               | Assigned Vehicle/Role         |
+|-------------------|-------------------------------------------------------|-------------------------------|-------------------------------|
+| 11:00 AM – 12:00 PM | Pat drives from W to B and picks up Alex             | Pat, Alex                     | Car 1 (Pat)                   |
+| 12:00 PM – 1:00 PM  | Pat waits at B for Jamie (arrives 12:30 PM), then departs | Pat, Alex, Jamie           | Car 1 (Pat)                   |
+| 1:00 PM – 1:30 PM   | Drive to Tailor Shop (T) to pick up clothes          | Pat, Alex, Jamie              | Car 1 (Pat)                   |
+| 1:30 PM – 2:15 PM   | Drive to Gift Shop (G) and collect gifts (after 12:00 PM) | Pat, Alex, Jamie          | Car 1 (Pat)                   |
+| 2:15 PM – 2:45 PM   | Drive to Wedding Venue (W) from G                    | Pat, Alex, Jamie              | Car 1 (Pat)                   |
+| 3:00 PM             | Attend wedding photo session                         | Everyone (Pat, Alex, Jamie, Chris) | All available at W     |
+
 
 Include all transportation details, pickups, dropoffs, task completions, and venue constraints. Prioritize the clothes pickup before 2:00 PM and ensure the photo session starts at 3:00 PM.
 
