@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-SagaLLM模板生成器
-根据用户的自然语言输入，自动生成并执行自定义的智能体模板
+SagaLLM Template Generator
+Automatically generates and executes custom agent templates based on user's natural language input
 """
 
 import sys
@@ -12,16 +12,16 @@ import traceback
 from dotenv import load_dotenv
 load_dotenv()
 
-# 设置环境变量而不是直接修改stdout/stderr
+# Set environment variables instead of directly modifying stdout/stderr
 os.environ["PYTHONIOENCODING"] = "utf-8"
 os.environ["LC_ALL"] = "en_US.UTF-8"
 os.environ["LANG"] = "en_US.UTF-8"
 
-# 获取项目根目录路径
+# Get project root directory path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-print(f"📂 项目根目录: {project_root}")
+print(f"📂 Project Root: {project_root}")
 
-# 添加src目录到Python路径
+# Add src directory to Python path
 src_path = os.path.join(project_root, 'src')
 sys.path.append(src_path)
 sys.path.append(project_root)
@@ -32,117 +32,117 @@ try:
     from src.planning_agent.react_agent import ReactAgent
     from src.tool_agent.tool import Tool
     from openai import OpenAI
-    print("✅ 成功导入必要的模块")
+    print("✅ Successfully imported necessary modules")
     
-    # 有条件导入streamlit
+    # Conditionally import streamlit
     try:
         import streamlit as st
     except ImportError:
         st = None
         
 except ModuleNotFoundError as e:
-    print(f"❌ 导入失败: {e}")
+    print(f"❌ Import failed: {e}")
     sys.exit(1)
 
-# 创建OpenAI客户端
+# Create OpenAI client
 client = OpenAI()
 
 def generate_template(scenario_description):
     """
-    根据用户的自然语言描述生成智能体模板
+    Generate agent template based on user's natural language description
     
     Args:
-        scenario_description: 用户输入的场景描述、背景和约束条件
+        scenario_description: User's input describing the scenario, background, and constraints
         
     Returns:
-        generated_template: 生成的模板定义，包含智能体和依赖关系
+        generated_template: Generated template definition, including agents and dependencies
     """
-    print("🧠 分析场景描述并生成智能体模板...")
+    print("🧠 Analyzing scenario description and generating agent template...")
     
-    # 设计提示
+    # Design prompt
     prompt = f"""
-你是一个多智能体系统设计专家，你需要将用户的自然语言问题转换为一组合适的智能体及其依赖关系。
+You are a multi-agent system design expert, and you need to convert the user's natural language problem into a set of appropriate agents and their dependencies.
 
-用户场景描述:
+User scenario description:
 {scenario_description}
 
-请分析上述场景，并创建一个多智能体系统，遵循以下规则：
-1. 确定所需的智能体类型和角色
-2. 为每个智能体定义明确的任务和职责
-3. 确定智能体之间的依赖关系
-4. 确保系统整体可以解决用户的问题
+Please analyze the above scenario and create a multi-agent system following these rules:
+1. Determine the types of agents needed and their roles
+2. Define clear tasks and responsibilities for each agent
+3. Determine dependencies between agents
+4. Ensure the system as a whole can solve the user's problem
 
-请用以下JSON格式返回你的设计：
+Please return your design in the following JSON format:
 
 ```json
 {{
-  "template_name": "模板名称",
-  "description": "模板描述",
+  "template_name": "Template Name",
+  "description": "Template Description",
   "agents": [
     {{
-      "name": "智能体1名称",
-      "backstory": "智能体1的背景故事和角色定义",
-      "task_description": "智能体1的具体任务描述",
-      "task_expected_output": "<response>\n  <task>任务名称</task>\n  <people>相关人员</people>\n  <time>相关时间安排</time>\n</response>"
+      "name": "Agent 1 Name",
+      "backstory": "Agent 1 backstory and role definition",
+      "task_description": "Specific task description for Agent 1",
+      "task_expected_output": "<response>\n  <task>Task Name</task>\n  <people>Relevant People</people>\n  <time>Relevant Time Schedule</time>\n</response>"
     }},
     {{
-      "name": "智能体2名称",
-      "backstory": "智能体2的背景故事和角色定义",
-      "task_description": "智能体2的具体任务描述",
-      "task_expected_output": "<response>\n  <task>任务名称</task>\n  <people>相关人员</people>\n  <time>相关时间安排</time>\n</response>"
+      "name": "Agent 2 Name",
+      "backstory": "Agent 2 backstory and role definition",
+      "task_description": "Specific task description for Agent 2",
+      "task_expected_output": "<response>\n  <task>Task Name</task>\n  <people>Relevant People</people>\n  <time>Relevant Time Schedule</time>\n</response>"
     }}
-    // 更多智能体...
+    // More agents...
   ],
   "dependencies": [
-    {{"from": "上游智能体名称", "to": "下游智能体名称"}},
-    {{"from": "上游智能体名称", "to": "下游智能体名称"}}
-    // 更多依赖关系...
+    {{"from": "Upstream Agent Name", "to": "Downstream Agent Name"}},
+    {{"from": "Upstream Agent Name", "to": "Downstream Agent Name"}}
+    // More dependencies...
   ]
 }}
 ```
 
-确保你的设计是合理的，智能体职责明确，依赖关系清晰，没有循环依赖。
+Ensure your design is reasonable, with clear agent responsibilities and dependencies, and without circular dependencies.
 """
     
-    # 调用OpenAI API生成模板
+    # Call OpenAI API to generate template
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
     )
     
-    # 提取JSON模板
+    # Extract JSON template
     result = response.choices[0].message.content
     try:
-        # 从回复中提取JSON部分
+        # Extract JSON portion from the reply
         json_str = result.split("```json")[1].split("```")[0].strip() if "```json" in result else result
         template = json.loads(json_str)
-        print("✅ 成功生成模板")
+        print("✅ Template generated successfully")
         return template
     except Exception as e:
-        print(f"❌ 解析模板JSON失败: {e}")
-        print(f"原始返回内容: {result}")
+        print(f"❌ Failed to parse template JSON: {e}")
+        print(f"Original return content: {result}")
         return None
 
 def create_agents_from_template(template):
     """
-    根据生成的模板创建智能体及其依赖关系
+    Create agents and their dependencies based on the generated template
     
     Args:
-        template: 包含智能体定义和依赖关系的模板
+        template: Template containing agent definitions and dependencies
         
     Returns:
-        agents: 创建的智能体列表
-        agent_dict: 智能体名称到对象的映射
+        agents: List of created agents
+        agent_dict: Mapping from agent names to objects
     """
-    print("🏗️ 根据生成的模板创建智能体...")
+    print("🏗️ Creating agents based on the generated template...")
     
     agents = []
     agent_dict = {}
     
-    # 创建智能体
+    # Create agents
     for agent_data in template["agents"]:
-        print(f"📝 创建智能体: {agent_data['name']}")
+        print(f"📝 Creating agent: {agent_data['name']}")
         try:
             agent = Agent(
                 name=agent_data["name"],
@@ -153,45 +153,45 @@ def create_agents_from_template(template):
             agents.append(agent)
             agent_dict[agent_data["name"]] = agent
         except Exception as e:
-            print(f"❌ 创建智能体 {agent_data['name']} 失败: {e}")
+            print(f"❌ Failed to create agent {agent_data['name']}: {e}")
             traceback.print_exc()
     
-    # 建立依赖关系
+    # Establish dependencies
     for dep in template["dependencies"]:
         from_agent = agent_dict.get(dep["from"])
         to_agent = agent_dict.get(dep["to"])
         if from_agent and to_agent:
-            print(f"🔗 建立依赖关系: {dep['from']} → {dep['to']}")
+            print(f"🔗 Establishing dependency: {dep['from']} → {dep['to']}")
             try:
                 from_agent.add_dependent(to_agent)
             except Exception as e:
-                print(f"❌ 建立依赖关系失败: {e}")
+                print(f"❌ Failed to establish dependency: {e}")
                 traceback.print_exc()
     
     return agents, agent_dict
 
 def execute_template(agents):
     """
-    执行创建的智能体模板
+    Execute the created agent template
     
     Args:
-        agents: 智能体列表
+        agents: List of agents
         
     Returns:
-        results: 执行结果
+        results: Execution results
     """
-    print("\n🚀 执行智能体任务...")
+    print("\n🚀 Executing agent tasks...")
     
-    # 创建Saga实例
+    # Create Saga instance
     saga = Saga()
     results = {"success": False, "context": {}, "error": None}
     
     try:
-        # 注册智能体并执行
+        # Register agents and execute
         saga.transaction_manager(agents)
         saga.saga_coordinator(with_rollback=True)
         
-        # 收集结果
+        # Collect results
         results["success"] = True
         results["context"] = saga.context
     except Exception as e:
@@ -201,61 +201,61 @@ def execute_template(agents):
     return results, saga
 
 def create_streamlit_app():
-    """创建Streamlit应用界面"""
+    """Create Streamlit application interface"""
     if st is None:
-        print("❌ Streamlit未安装，无法创建Web界面")
+        print("❌ Streamlit is not installed, cannot create Web interface")
         return
         
-    st.set_page_config(page_title="SagaLLM模板生成器", page_icon="🧠", layout="wide")
+    st.set_page_config(page_title="SagaLLM Template Generator", page_icon="🧠", layout="wide")
     
-    st.title("🧠 SagaLLM智能模板生成器")
-    st.write("输入你的问题场景，AI将自动创建并执行一个多智能体系统来解决它")
+    st.title("🧠 SagaLLM Intelligent Template Generator")
+    st.write("Enter your problem scenario, and AI will automatically create and execute a multi-agent system to solve it")
     
-    # 用户输入
+    # User input
     scenario = st.text_area(
-        "描述你的场景、任务和约束条件", 
+        "Describe your scenario, tasks, and constraints", 
         height=200,
-        placeholder="例如：我需要规划一次家庭聚会，有10个亲戚要来，其中有些人需要接送，活动包括准备食物、游戏和住宿安排。有些人是素食者，有些人对花生过敏..."
+        placeholder="Example: I need to plan a family gathering with 10 relatives, some of whom need transportation. Activities include preparing food, games, and accommodation arrangements. Some people are vegetarians, some have peanut allergies..."
     )
     
-    # 生成模板部分
-    if st.button("生成并执行"):
+    # Generate template section
+    if st.button("Generate and Execute"):
         if not scenario:
-            st.error("请输入场景描述")
+            st.error("Please enter a scenario description")
             return
         
-        # 生成模板
-        with st.spinner("正在分析场景并生成智能体模板..."):
+        # Generate template
+        with st.spinner("Analyzing scenario and generating agent template..."):
             template = generate_template(scenario)
             
         if not template:
-            st.error("生成模板失败，请重试或修改输入")
+            st.error("Failed to generate template, please try again or modify your input")
             return
         
-        # 显示生成的模板
-        st.success("✅ 智能体模板生成成功!")
-        st.subheader("📋 生成的模板")
+        # Display generated template
+        st.success("✅ Agent template generated successfully!")
+        st.subheader("📋 Generated Template")
         
-        # 显示模板详情
+        # Display template details
         col1, col2 = st.columns(2)
         with col1:
-            st.write(f"**名称**: {template.get('template_name', '自定义模板')}")
-            st.write(f"**描述**: {template.get('description', '根据用户输入生成的模板')}")
+            st.write(f"**Name**: {template.get('template_name', 'Custom Template')}")
+            st.write(f"**Description**: {template.get('description', 'Template generated based on user input')}")
             
-            st.write("**智能体**:")
+            st.write("**Agents**:")
             for idx, agent in enumerate(template["agents"]):
                 with st.expander(f"{idx+1}. {agent['name']}"):
-                    st.write(f"**背景**: {agent['backstory']}")
-                    st.write(f"**任务**: {agent['task_description']}")
-                    st.write("**预期输出**:")
+                    st.write(f"**Background**: {agent['backstory']}")
+                    st.write(f"**Task**: {agent['task_description']}")
+                    st.write("**Expected Output**:")
                     st.code(agent.get('task_expected_output', ''), language="xml")
         
         with col2:
-            st.write("**依赖关系**:")
+            st.write("**Dependencies**:")
             for dep in template["dependencies"]:
                 st.write(f"- {dep['from']} → {dep['to']}")
             
-            # 可视化依赖关系
+            # Visualize dependencies
             try:
                 import networkx as nx
                 import matplotlib.pyplot as plt
@@ -274,55 +274,55 @@ def create_streamlit_app():
                         font_weight='bold', arrows=True, ax=ax)
                 st.pyplot(fig)
             except Exception as e:
-                st.warning(f"无法绘制依赖关系图: {e}")
+                st.warning(f"Cannot draw dependency graph: {e}")
         
-        # 创建并执行智能体
-        with st.spinner("正在创建并执行智能体..."):
+        # Create and execute agents
+        with st.spinner("Creating and executing agents..."):
             try:
                 agents, agent_dict = create_agents_from_template(template)
                 results, saga = execute_template(agents)
             except Exception as e:
-                st.error(f"执行过程中出错: {str(e)}")
+                st.error(f"Error during execution: {str(e)}")
                 st.code(traceback.format_exc())
                 return
         
-        # 显示执行结果
+        # Display execution results
         if results["success"]:
-            st.success("✅ 智能体执行成功!")
+            st.success("✅ Agents executed successfully!")
         else:
-            st.error(f"❌ 执行出错: {results['error']}")
+            st.error(f"❌ Execution error: {results['error']}")
         
-        # 显示每个智能体的输出
-        st.subheader("🔍 执行结果")
+        # Display output from each agent
+        st.subheader("🔍 Execution Results")
         
         for agent in agents:
-            with st.expander(f"{agent.name} 的输出"):
+            with st.expander(f"{agent.name} Output"):
                 if agent.name in saga.context:
                     st.code(saga.context[agent.name], language="xml")
                 else:
-                    st.warning("该智能体未执行或执行失败")
+                    st.warning("This agent did not execute or execution failed")
         
-        # 显示总体结论
-        st.subheader("📊 总体分析")
+        # Display overall analysis
+        st.subheader("📊 Overall Analysis")
         
-        # 从结果中提取关键信息生成总结
+        # Extract key information from results to generate summary
         agent_outputs = []
         for agent in agents:
             if agent.name in saga.context:
                 agent_outputs.append(f"{agent.name}: {saga.context[agent.name][:200]}...")
         
         summary_prompt = f"""
-根据以下多智能体系统的执行结果，为用户提供一个简洁的总结。原始问题是:
+Based on the following multi-agent system execution results, provide a concise summary for the user. The original problem was:
 
 {scenario}
 
-各智能体的输出:
+Agent outputs:
 {agent_outputs}
 
-请提供一个简明的总结，解释系统如何解决了用户的问题，以及关键的见解和建议。
+Please provide a concise summary explaining how the system addressed the user's problem, along with key insights and recommendations.
 """
         
-        with st.spinner("正在生成总结..."):
+        with st.spinner("Generating summary..."):
             summary_response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[{"role": "user", "content": summary_prompt}],
@@ -333,13 +333,13 @@ def create_streamlit_app():
         st.write(summary)
 
 def cli_interface():
-    """命令行界面"""
+    """Command line interface"""
     print("\n==================================================")
-    print("🧠 SagaLLM智能模板生成器")
+    print("🧠 SagaLLM Intelligent Template Generator")
     print("==================================================\n")
     
-    # 获取用户输入
-    print("请描述你的场景、任务和约束条件（输入完成后按Ctrl+D或Ctrl+Z+回车结束）：")
+    # Get user input
+    print("Please describe your scenario, tasks, and constraints (press Ctrl+D or Ctrl+Z+Enter when done):")
     scenario_lines = []
     try:
         while True:
@@ -351,59 +351,59 @@ def cli_interface():
     scenario_description = "\n".join(scenario_lines)
     
     if not scenario_description.strip():
-        print("❌ 未输入场景描述，程序退出")
+        print("❌ No scenario description entered, program exiting")
         return
     
-    # 生成模板
+    # Generate template
     template = generate_template(scenario_description)
     if not template:
-        print("❌ 生成模板失败，程序退出")
+        print("❌ Failed to generate template, program exiting")
         return
     
-    # 打印模板详情
+    # Print template details
     print("\n==================================================")
-    print(f"📋 生成的模板: {template.get('template_name', '自定义模板')}")
-    print(f"📝 描述: {template.get('description', '根据用户输入生成的模板')}")
+    print(f"📋 Generated Template: {template.get('template_name', 'Custom Template')}")
+    print(f"📝 Description: {template.get('description', 'Template generated based on user input')}")
     print("==================================================\n")
     
-    print("📑 智能体:")
+    print("📑 Agents:")
     for idx, agent in enumerate(template["agents"]):
         print(f"  {idx+1}. {agent['name']}")
-        print(f"     背景: {agent['backstory'][:100]}...")
-        print(f"     任务: {agent['task_description'][:100]}...")
+        print(f"     Background: {agent['backstory'][:100]}...")
+        print(f"     Task: {agent['task_description'][:100]}...")
     
-    print("\n🔗 依赖关系:")
+    print("\n🔗 Dependencies:")
     for dep in template["dependencies"]:
         print(f"  - {dep['from']} → {dep['to']}")
     
-    # 确认是否执行
-    confirm = input("\n是否创建并执行该模板？(y/n): ")
+    # Confirm execution
+    confirm = input("\nCreate and execute this template? (y/n): ")
     if confirm.lower() != 'y':
-        print("用户取消执行，程序退出")
+        print("User cancelled execution, program exiting")
         return
     
-    # 创建并执行智能体
+    # Create and execute agents
     agents, agent_dict = create_agents_from_template(template)
     results, saga = execute_template(agents)
     
-    # 打印执行结果
+    # Print execution results
     print("\n==================================================")
-    print("📊 执行结果:")
+    print("📊 Execution Results:")
     print("==================================================\n")
     
     if not results["success"]:
-        print(f"❌ 执行出错: {results['error']}")
+        print(f"❌ Execution error: {results['error']}")
     
     for agent in agents:
         if agent.name in saga.context:
-            print(f"✅ {agent.name}: 执行成功")
-            print(f"📄 结果: {saga.context[agent.name][:200]}...\n")
+            print(f"✅ {agent.name}: Execution successful")
+            print(f"📄 Result: {saga.context[agent.name][:200]}...\n")
         else:
-            print(f"❌ {agent.name}: 未执行或执行失败\n")
+            print(f"❌ {agent.name}: Not executed or execution failed\n")
     
-    # 生成总结
+    # Generate summary
     print("\n==================================================")
-    print("📊 总体分析:")
+    print("📊 Overall Analysis:")
     print("==================================================\n")
     
     agent_outputs = []
@@ -412,14 +412,14 @@ def cli_interface():
             agent_outputs.append(f"{agent.name}: {saga.context[agent.name][:200]}...")
     
     summary_prompt = f"""
-根据以下多智能体系统的执行结果，为用户提供一个简洁的总结。原始问题是:
+Based on the following multi-agent system execution results, provide a concise summary for the user. The original problem was:
 
 {scenario_description}
 
-各智能体的输出:
+Agent outputs:
 {agent_outputs}
 
-请提供一个简明的总结，解释系统如何解决了用户的问题，以及关键的见解和建议。
+Please provide a concise summary explaining how the system addressed the user's problem, along with key insights and recommendations.
 """
     
     summary_response = client.chat.completions.create(
@@ -432,7 +432,7 @@ def cli_interface():
     print(summary)
 
 if __name__ == "__main__":
-    # 检查是否从命令行启动
+    # Check if started from command line
     if len(sys.argv) > 1 and sys.argv[1] == "--streamlit":
         create_streamlit_app()
     else:

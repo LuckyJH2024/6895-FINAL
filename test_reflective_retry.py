@@ -1,7 +1,7 @@
 import os
 import sys
 
-# 加载 src 路径
+# load src path 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
 sys.path.append(project_root)
 
