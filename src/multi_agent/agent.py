@@ -11,7 +11,7 @@ import io
 original_stdout = sys.stdout
 original_stderr = sys.stderr
 
-# 设置标准输出和错误流编码为UTF-8
+# Set stdout and stderr encoding to UTF-8
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
@@ -37,7 +37,7 @@ class Agent:
         self.dependents: list[Agent] = []    # Agents that depend on this agent
 
         self.context = ""
-        self.output = ""  # 存储Agent自己的输出，方便共享
+        self.output = ""  # Store agent's own output for sharing
         self.predictor = FailurePredictor()
 
         Crew.register_agent(self)
@@ -132,14 +132,14 @@ class Agent:
                 print(f"❌ Validation failed for agent {self.name}: Missing required structure.")
                 raise ValueError(f"Agent {self.name} output format invalid.")
 
-            self.output = output  # 存储自己的输出到output属性
+            self.output = output  # Store agent's output to output attribute
 
             for dependent in self.dependents:
                 dependent.receive_context(self.output)
 
             return output
         except Exception as e:
-            # 确保错误消息使用UTF-8编码
+            # Ensure error messages use UTF-8 encoding
             error_msg = f"Error in agent {self.name}: {str(e)}"
             print(error_msg)
             raise

@@ -1,14 +1,14 @@
 import sys
 import os
 
-# 添加 src 路径以导入 utils 模块
+# Add 'src' path to import the utils module
 project_root = os.path.abspath(os.path.join(os.getcwd(), 'src'))
 sys.path.append(project_root)
 
-# 导入验证函数
+# Import the validation function
 from utils.validation import validate_response_format
 
-# 测试示例 1：合格输出
+# Test Case 1: Valid output
 output_valid = """
 <response>
   <task>Coordinate arrivals</task>
@@ -17,13 +17,13 @@ output_valid = """
 </response>
 """
 
-# 测试示例 2：缺少字段
+# Test Case 2: Missing fields
 output_invalid = """
 <response>
   <time>Only time provided</time>
 </response>
 """
 
-# 运行测试
-print("✅ Valid Output:", validate_response_format(output_valid))      # 应返回 True
-print("❌ Invalid Output:", validate_response_format(output_invalid))  # 应返回 False
+# Run tests
+print("✅ Valid Output:", validate_response_format(output_valid))      # Should return True
+print("❌ Invalid Output:", validate_response_format(output_invalid))  # Should return False

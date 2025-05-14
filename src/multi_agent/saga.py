@@ -13,7 +13,7 @@ import io
 original_stdout = sys.stdout
 original_stderr = sys.stderr
 
-# 设置标准输出编码为UTF-8
+# Set stdout encoding to UTF-8
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
@@ -82,7 +82,7 @@ class Saga:
                     print(Fore.RED + f"❌ ERROR in {agent.name}: {str(e)}")
                     raise e
 
-                # ✅ 处理可能返回风险结构（要求 agent.run() 返回 dict 或 tuple）
+                # Handle potential risk structure return (requires agent.run() to return dict or tuple)
                 if isinstance(result, dict) and "risk" in result:
                     risk = result["risk"]
                     reason = result.get("reason", "No reason provided.")
@@ -91,9 +91,9 @@ class Saga:
                         self.context[agent.name] = (
                             f"<response><status>skipped</status><reason>{reason}</reason></response>"
                         )
-                        continue  # ✅ skip execution, don't append to executed_agents
+                        continue  # Skip execution, don't append to executed_agents
 
-                    result = result.get("content", "")  # ✅ continue with content if not high risk
+                    result = result.get("content", "")  # Continue with content if not high risk
 
                 self.context[agent.name] = result
                 executed_agents.append(agent)
